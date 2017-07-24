@@ -51,7 +51,7 @@ class AlexNet(nn.Module):
 def unit_test():
     test_net = AlexNet()
     a = test_net(Variable(torch.randn(5, 12, 94, 168)),
-                 Variable(torch.randn(5, 128, 23, 41)))
+                 Variable(torch.randn(5, 6, 23, 41)))
     logging.debug('Net Test Output = {}'.format(a))
     logging.debug('Network was Unit Tested')
 

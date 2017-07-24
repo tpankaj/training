@@ -9,7 +9,7 @@ import Utils
 
 import matplotlib.pyplot as plt
 
-from nets.SqueezeNet import SqueezeNet
+from nets.AlexNet import AlexNet
 import torch
 
 
@@ -22,7 +22,7 @@ def main():
     torch.cuda.set_device(ARGS.gpu)
     torch.cuda.device(ARGS.gpu)
 
-    net = SqueezeNet().cuda()
+    net = AlexNet().cuda()
     criterion = torch.nn.MSELoss().cuda()
     optimizer = torch.optim.Adadelta(net.parameters())
 

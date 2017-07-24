@@ -44,8 +44,8 @@ class AlexNet(nn.Module):
         x = self.pre_metadata_features(x)
         x = torch.cat((x, metadata), 1)
         x = self.post_metadata_features(x)
-        x = self.classifier(x)
         x = x.view(x.size(0), -1)
+        x = self.classifier(x)
         return x
 
 def unit_test():

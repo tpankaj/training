@@ -63,8 +63,8 @@ class Batch:
 
         # Convert Behavioral Modes/Metadata to PyTorch Ready Tensors
         metadata = torch.FloatTensor().cuda()
-        zero_matrix = torch.FloatTensor(1, 1, 23, 41).zero_().cuda()
-        one_matrix = torch.FloatTensor(1, 1, 23, 41).fill_(1).cuda()
+        zero_matrix = torch.FloatTensor(1, 1, 4, 9).zero_().cuda()
+        one_matrix = torch.FloatTensor(1, 1, 4, 9).fill_(1).cuda()
         for cur_label in ['racing', 'caffe', 'follow', 'direct', 'play',
                           'furtive']:
             if cur_label == 'caffe':

@@ -14,7 +14,7 @@ class AlexNet(nn.Module):
         self.N_FRAMES = 2
         self.N_STEPS = 10
         self.pre_metadata_features = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
+            nn.Conv2d(12, 64, kernel_size=11, stride=4, padding=2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
             nn.Conv2d(64, 192, kernel_size=5, padding=2),
@@ -51,7 +51,7 @@ class AlexNet(nn.Module):
 def unit_test():
     test_net = AlexNet()
     a = test_net(Variable(torch.randn(5, 12, 94, 168)),
-                 Variable(torch.randn(5, 6, 23, 41)))
+                 Variable(torch.randn(5, 6, 4, 9)))
     logging.debug('Net Test Output = {}'.format(a))
     logging.debug('Network was Unit Tested')
 

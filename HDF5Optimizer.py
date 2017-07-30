@@ -38,5 +38,5 @@ def main():
                         dtype=dset_dtype)
 
 
-if __name == '__main__':
+if __name__ == '__main__':
     main()

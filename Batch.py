@@ -45,6 +45,7 @@ class Batch:
 
             self.data_ids.append((run_code, seg_num, offset))
             self.data_into_batch(data_point)
+        return (self.camera_data, self.metadata, self.target_data)
 
     def data_into_batch(self, data):
         self.names.insert(0, data['name'])

@@ -53,8 +53,5 @@ class Data:
             data_index.epoch_complete = True
         if data_index.ctr == -1:
             data_index.ctr = 0
-            print('shuffle start')
-            random.shuffle(data_index.valid_data_moments)
-            print('shuffle finished')
         data_index.ctr += 1
         return data_index.valid_data_moments[data_index.ctr]

@@ -29,85 +29,23 @@ class Batch:
         self.names = None
         self.outputs = None
         self.loss = None
-        self.data_ids = None
 
-    def fill(self, data, data_index):
-        self.clear()
-        self.data_ids = []
-        for _ in range(ARGS.batch_size):
-            data_point = None
-            while data_point is None:
-                e = data.next(data_index)
-                run_code = e[3]
-                seg_num = e[0]
-                offset = e[1]
-                data_point = data.get_data(run_code, seg_num, offset)
-
-            self.data_ids.append((run_code, seg_num, offset))
-            self.data_into_batch(data_point)
-        return (self.camera_data, self.metadata, self.target_data)
-
-    def data_into_batch(self, data):
-        self.names.insert(0, data['name'])
-
-        # Convert Camera Data to PyTorch Ready Tensors
-        list_camera_input = []
-        for t in range(ARGS.nframes):
-            for camera in ('left', 'right'):
-                list_camera_input.append(torch.from_numpy(data[camera][t]))
-        camera_data = torch.cat(list_camera_input, 2)
-        camera_data = camera_data.cuda().float() / 255. - 0.5
-        camera_data = torch.transpose(camera_data, 0, 2)
-        camera_data = torch.transpose(camera_data, 1, 2)
-        self.camera_data = torch.cat((self.camera_data,
-                                      torch.unsqueeze(camera_data, 0)), 0)
-
-        # Convert Behavioral Modes/Metadata to PyTorch Ready Tensors
-        metadata = torch.FloatTensor().cuda()
-        zero_matrix = torch.FloatTensor(1, 1, 23, 41).zero_().cuda()
-        one_matrix = torch.FloatTensor(1, 1, 23, 41).fill_(1).cuda()
-        for cur_label in ['racing', 'caffe', 'follow', 'direct', 'play',
-                          'furtive']:
-            if cur_label == 'caffe':
-                if data['states'][0]:
-                    metadata = torch.cat((one_matrix, metadata), 1)
-                else:
-                    metadata = torch.cat((zero_matrix, metadata), 1)
-            else:
-                if data['labels'][cur_label]:
-                    metadata = torch.cat((one_matrix, metadata), 1)
-                else:
-                    metadata = torch.cat((zero_matrix, metadata), 1)
-        metadata = torch.cat((torch.FloatTensor(1, 122, 23, 41).zero_().cuda(),
-                              metadata), 1)  # Pad empty tensor
-        self.metadata = torch.cat((self.metadata, metadata), 0)
-
-        # Figure out which timesteps of labels to get
-        s = data['steer']
-        m = data['motor']
-        r = range(ARGS.stride * ARGS.nsteps - 1, -1, -ARGS.stride)[::-1]
-        s = np.array(s)[r]
-        m = np.array(m)[r]
-
-        # Convert labels to PyTorch Ready Tensors
-        steer = torch.from_numpy(s).cuda().float() / 99.
-        motor = torch.from_numpy(m).cuda().float() / 99.
-        target_data = torch.unsqueeze(torch.cat((steer, motor), 0), 0)
-        self.target_data = torch.cat((self.target_data, target_data), 0)
-
-    def forward(self, optimizer, criterion, data_moment_loss_record):
+    def forward(self, camera_data, metadata, target_data,
+                optimizer, criterion, data_moment_loss_record):
+        self.camera_data = camera_data.cuda()
+        self.metadata = metadata.cuda()
+        self.target_data = target_data.cuda()
         optimizer.zero_grad()
         self.outputs = self.net(Variable(self.camera_data),
                                 Variable(self.metadata)).cuda()
         self.loss = criterion(self.outputs, Variable(self.target_data))
 
         for b in range(ARGS.batch_size):
-            data_id = self.data_ids[b]
             t = self.target_data[b].cpu().numpy()
             o = self.outputs[b].data.cpu().numpy()
             a = (self.target_data[b] - self.outputs[b].data).cpu().numpy()
             loss = np.sqrt(a * a).mean()
-            data_moment_loss_record[(data_id, tuple(t), tuple(o))] = loss
+            data_moment_loss_record[(tuple(t), tuple(o))] = loss
 
     def backward(self, optimizer):
         self.loss.backward()

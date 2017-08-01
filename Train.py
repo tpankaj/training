@@ -3,7 +3,7 @@ import traceback
 import logging
 
 from Parameters import ARGS
-import Data
+from HDF5Dataset import HDF5Dataset
 import Batch
 import Utils
 
@@ -26,13 +26,17 @@ def main():
     criterion = torch.nn.MSELoss().cuda()
     optimizer = torch.optim.Adadelta(net.parameters())
 
+    batch = Batch.Batch(net)
+
+    dataset = HDF5Dataset('/data/tpankaj/preprocess.hdf5')
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=ARGS.batch_size,
+                                              shuffle=True, pin_memory=False,
+                                              drop_last=True, num_workers=2)
+
     if ARGS.resume_path is not None:
         cprint('Resuming w/ ' + ARGS.resume_path, 'yellow')
         save_data = torch.load(ARGS.resume_path)
         net.load_state_dict(save_data)
-
-    data = Data.Data()
-    batch = Batch.Batch(net)
 
     # Maitains a list of all inputs to the network, and the loss and outputs for
     # each of these runs. This can be used to sort the data by highest loss and
@@ -41,9 +45,9 @@ def main():
     data_moment_loss_record = {}
     rate_counter = Utils.RateCounter()
 
-    def run_net(data_index):
-        batch.fill(data, data_index)  # Get batches ready
-        batch.forward(optimizer, criterion, data_moment_loss_record)
+    def run_net(camera_data, metadata, target_data):
+        batch.forward(camera_data, metadata, target_data,
+                      optimizer, criterion, data_moment_loss_record)
 
     try:
         epoch = 0
@@ -55,25 +59,27 @@ def main():
             net.train()  # Train mode
             epoch_train_loss = Utils.LossLog()
             print_counter = Utils.MomentCounter(ARGS.print_moments)
-
-            while not data.train_index.epoch_complete:  # Epoch of training
-                run_net(data.train_index)  # Run network
+            
+            for camera_data, metadata, target_data in data_loader: # Epoch of training
+                count = 0
+                run_net(camera_data, metadata, target_data)
                 batch.backward(optimizer)  # Backpropagate
+                count += ARGS.batch_size
 
                 # Logging Loss
-                epoch_train_loss.add(data.train_index.ctr, batch.loss.data[0])
+                epoch_train_loss.add(count, batch.loss.data[0])
                 rate_counter.step()
 
-                if print_counter.step(data.train_index):
+                if print_counter.step(count):
                     print('mode = train\n'
                           'ctr = {}\n'
                           'most recent loss = {}\n'
                           'epoch progress = {} \n'
                           'epoch = {}\n'
-                          .format(data.train_index.ctr,
+                          .format(count,
                                   batch.loss.data[0],
-                                  100. * data.train_index.ctr /
-                                  len(data.train_index.valid_data_moments),
+                                  100. * count /
+                                  len(dataset),
                                   epoch))
 
                     if ARGS.display:

@@ -18,8 +18,8 @@ class MomentCounter:
         self.n = n
 
     def step(self, data_index):
-        if data_index.ctr - self.start >= self.n:
-            self.start = data_index.ctr
+        if data_index - self.start >= self.n:
+            self.start = data_index
             return True
         return False
 

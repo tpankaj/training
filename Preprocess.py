@@ -30,9 +30,9 @@ def main():
     h5File = h5py.File("/data/tpankaj/preprocess.hdf5", "w")
     train_len = len(data.train_index.valid_data_moments)
     val_len = len(data.val_index.valid_data_moments)
-    train_camera_data = h5File.create_dataset("train_camera_data", (train_len, 12, 94, 168), chunks=(ARGS.batch_size, 12, 94, 168), dtype='float32', compression='lzf')
-    train_metadata = h5File.create_dataset("train_metadata", (train_len, 128, 23, 41), chunks=(ARGS.batch_size, 128, 23, 41), dtype='float32', compression='lzf')
-    train_target_data = h5File.create_dataset("train_target_data", (train_len, 20), chunks=(ARGS.batch_size, 20), dtype='float32', compression='lzf')
+    train_camera_data = h5File.create_dataset("train_camera_data", (train_len, 12, 94, 168), dtype='float32')
+    train_metadata = h5File.create_dataset("train_metadata", (train_len, 128, 23, 41), chunks=(ARGS.batch_size, 128, 23, 41), dtype='float32')
+    train_target_data = h5File.create_dataset("train_target_data", (train_len, 20), dtype='float32')
 
     # Save training data
     while not data.train_index.epoch_complete:  # Epoch of training

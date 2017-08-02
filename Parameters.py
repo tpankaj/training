@@ -1,9 +1,10 @@
 """Command line arguments parser configuration."""
 import argparse  # default python library for command line argument parsing
+import os
 
-parser = argparse.ArgumentParser(description='Train DNNs on model car data.',
-                                 formatter_class=argparse.
-                                 ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser(  # pylint: disable=invalid-name
+    description='Train DNNs on model car data.',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('--gpu', default=0, type=int, help='Cuda GPU ID')
 parser.add_argument('--batch-size', default=100, type=int)
@@ -14,8 +15,8 @@ parser.set_defaults(display=True)
 parser.add_argument('--verbose', default=True, type=bool,
                     help='Debugging mode')
 parser.add_argument('--aruco', default=True, type=bool, help='Use Aruco data')
-parser.add_argument('--data-path', default='/home/karlzipser/Desktop/' +
-                    'bair_car_data_Main_Dataset', type=str)
+parser.add_argument('--data-path', default='/home/dataset/' +
+                    'bair_car_data', type=str)
 parser.add_argument('--resume-path', default=None, type=str, help='Path to' +
                     ' resume file containing network state dictionary')
 parser.add_argument('--save-path', default='save', type=str, help='Path to' +
@@ -33,6 +34,7 @@ parser.add_argument(
     type=str,
     nargs='+',
     help='Skips these labels in data.')
+
 parser.add_argument('--require-one', default=(), type=str, nargs='+',
                     help='Skips data without these labels in data.')
 parser.add_argument('--use-states', default=(1, 3, 5, 6, 7), type=str,
@@ -49,3 +51,7 @@ parser.add_argument('--print-moments', default=1000, type=int,
                     help='# of moments between printing stats')
 
 ARGS = parser.parse_args()
+
+# Check for $DISPLAY being blank
+if 'DISPLAY' not in os.environ:
+    ARGS.display = False

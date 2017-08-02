@@ -29,10 +29,12 @@ class Data:
                                        self.hdf5_runs_path)
 
         # Load data indexes for training and validation
+        train_all_steer_path = ARGS.data_path + '/train_all_steer'
+        val_all_steer_path = ARGS.data_path + '/val_all_steer'
         print('loading train_valid_data_moments...')
-        self.train_index = DataIndex(lo(opjD('train_all_steer')), -1, 0)
+        self.train_index = DataIndex(lo(train_all_steer_path), -1, 0)
         print('loading val_valid_data_moments...')
-        self.val_index = DataIndex(lo(opjD('val_all_steer')), -1, 0)
+        self.val_index = DataIndex(lo(val_all_steer_path), -1, 0)
 
     @staticmethod
     def get_data(run_code, seg_num, offset):
@@ -45,7 +47,8 @@ class Data:
 
     @staticmethod
     def next(data_index):
-        if data_index.ctr >= len(data_index.valid_data_moments):
+        if data_index.ctr >= len(data_index.valid_data_moments) - (
+                1 + ARGS.batch_size):  # Skip last batch if it runs out of data
             data_index.ctr = -1
             data_index.epoch_counter += 1
             data_index.epoch_complete = True

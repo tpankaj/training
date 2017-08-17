@@ -11,6 +11,7 @@ class AlexNet(nn.Module):
     def __init__(self):
         super(AlexNet, self).__init__()
 
+        self.metadata_size = (4, 9)
         self.N_FRAMES = 2
         self.N_STEPS = 10
         self.pre_metadata_features = nn.Sequential(

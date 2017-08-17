@@ -35,18 +35,16 @@ class SqueezeNet(nn.Module):
     def __init__(self):
         super(SqueezeNet, self).__init__()
 
-        self.N_STEPS = 10
-        self.metadata_size = (11, 20)
-        self.pre_metadata_features = nn.Sequential(
-            nn.Conv2d(2 * 6, 64, kernel_size=3, stride=2),
+        self.n_frames = 2
+        self.n_steps = 10
+        self.features = nn.Sequential(
+            nn.Conv2d(self.n_frames * 6, 64, kernel_size=3, stride=2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
             Fire(64, 16, 64, 64),
             Fire(128, 16, 64, 64),
             nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
-        )
-        self.post_metadata_features = nn.Sequential(
-            Fire(134, 32, 128, 128),
+            Fire(128, 32, 128, 128),
             Fire(256, 32, 128, 128),
             nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
             Fire(256, 48, 192, 192),
@@ -54,7 +52,7 @@ class SqueezeNet(nn.Module):
             Fire(384, 64, 256, 256),
             Fire(512, 64, 256, 256),
         )
-        final_conv = nn.Conv2d(512, self.N_STEPS * 2, kernel_size=1)
+        final_conv = nn.Conv2d(512, self.n_steps * 2, kernel_size=1)
         self.final_output = nn.Sequential(
             nn.Dropout(p=0.5),
             final_conv,
@@ -71,10 +69,8 @@ class SqueezeNet(nn.Module):
                 if m.bias is not None:
                     m.bias.data.zero_()
 
-    def forward(self, x, metadata):
-        x = self.pre_metadata_features(x)
-        x = torch.cat((x, metadata), 1)
-        x = self.post_metadata_features(x)
+    def forward(self, x):
+        x = self.features(x)
         x = self.final_output(x)
         x = x.view(x.size(0), -1)
         return x
@@ -82,8 +78,7 @@ class SqueezeNet(nn.Module):
 
 def unit_test():
     test_net = SqueezeNet()
-    a = test_net(Variable(torch.randn(5, 2 * 6, 94, 168)),
-                 Variable(torch.randn(5, 6, 11, 20)))
+    a = test_net(Variable(torch.randn(5, test_net.n_frames * 6, 94, 168)))
     logging.debug('Net Test Output = {}'.format(a))
     logging.debug('Network was Unit Tested')
 

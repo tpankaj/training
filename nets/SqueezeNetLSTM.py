@@ -6,8 +6,6 @@ from torch.autograd import Variable
 import logging
 logging.basicConfig(filename='training.log', level=logging.DEBUG)
 
-#from Parameters import ARGS
-
 
 class Fire(nn.Module):  # pylint: disable=too-few-public-methods
     """Implementation of Fire module"""
@@ -44,14 +42,12 @@ class SqueezeNetLSTM(nn.Module):  # pylint: disable=too-few-public-methods
 
         self.n_frames = 2
         self.n_steps = 10
-        self.pre_metadata_features = nn.Sequential(
+        self.features = nn.Sequential(
             nn.Conv2d(self.n_frames * 6, 64, kernel_size=3, stride=2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
             Fire(64, 16, 64, 64),
-        )
-        self.post_metadata_features = nn.Sequential(
-            Fire(256, 16, 64, 64),
+            Fire(128, 16, 64, 64),
             nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
             Fire(128, 32, 128, 128),
             Fire(256, 32, 128, 128),
@@ -78,11 +74,9 @@ class SqueezeNetLSTM(nn.Module):  # pylint: disable=too-few-public-methods
                 if mod.bias is not None:
                     mod.bias.data.zero_()
 
-    def forward(self, camera_data, metadata):
+    def forward(self, camera_data):
         """Forward-propagates data through SqueezeNetLSTM"""
-        net_output = self.pre_metadata_features(camera_data)
-        net_output = torch.cat((net_output, metadata), 1)
-        net_output = self.post_metadata_features(net_output)
+        net_output = self.features(camera_data)
         net_output = self.pre_lstm_output(net_output)
         net_output = net_output.view(net_output.size(0), self.n_steps, -1)
         net_output = self.lstm(net_output)[0]
@@ -93,19 +87,7 @@ class SqueezeNetLSTM(nn.Module):  # pylint: disable=too-few-public-methods
 def unit_test():
     """Tests SqueezeNetLSTM for size constitency"""
     test_net = SqueezeNetLSTM()
-    test_net_output = test_net(
-        Variable(
-            torch.randn(
-                5,
-                self.n_frames * 6,
-                94,
-                168)),
-        Variable(
-            torch.randn(
-                5,
-                128,
-                23,
-                41)))
+    test_net_output = test_net(Variable(torch.randn(5, test_net.n_frames * 6, 94, 168)))
     logging.debug('Net Test Output = {}'.format(test_net_output))
     logging.debug('Network was Unit Tested')
 

@@ -6,6 +6,7 @@ from torch.autograd import Variable
 import logging
 logging.basicConfig(filename='training.log', level=logging.DEBUG)
 
+
 class AlexNet(nn.Module):
 
     def __init__(self):
@@ -48,6 +49,7 @@ class AlexNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
+
 
 def unit_test():
     test_net = AlexNet()

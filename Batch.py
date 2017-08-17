@@ -15,7 +15,6 @@ class Batch:
     def clear(self):
         ''' Clears batch variables before forward pass '''
         self.camera_data = torch.FloatTensor().cuda()
-        self.metadata = torch.FloatTensor().cuda()
         self.target_data = torch.FloatTensor().cuda()
         self.names = []
         self.outputs = None
@@ -24,7 +23,6 @@ class Batch:
     def __init__(self, net):
         self.net = net
         self.camera_data = None
-        self.metadata = None
         self.target_data = None
         self.names = None
         self.outputs = None
@@ -36,11 +34,6 @@ class Batch:
         self.data_ids = []
         self.camera_data = torch.FloatTensor(
             ARGS.batch_size, ARGS.nframes * 6, 94, 168).cuda()
-        self.metadata = torch.FloatTensor(
-            ARGS.batch_size,
-            6,
-            self.net.metadata_size[0],
-            self.net.metadata_size[1]).cuda()
         self.target_data = torch.FloatTensor(ARGS.batch_size, 20).cuda()
         for data_number in range(ARGS.batch_size):
             data_point = None
@@ -68,27 +61,6 @@ class Batch:
         camera_data = torch.transpose(camera_data, 1, 2)
         self.camera_data[data_number, :, :, :] = camera_data
 
-        # Convert Behavioral Modes/Metadata to PyTorch Ready Tensors
-        metadata = torch.FloatTensor(
-            6,
-            self.net.metadata_size[0],
-            self.net.metadata_size[1]).cuda()
-        metadata_count = 5
-        for cur_label in ['racing', 'caffe', 'follow', 'direct', 'play',
-                          'furtive']:
-            if cur_label == 'caffe':
-                if data['states'][0]:
-                    metadata[metadata_count, :, :] = 1.
-                else:
-                    metadata[metadata_count, :, :] = 0.
-            else:
-                if data['labels'][cur_label]:
-                    metadata[metadata_count, :, :] = 1.
-                else:
-                    metadata[metadata_count, :, :] = 0.
-            metadata_count -= 1
-        self.metadata[data_number, :, :, :] = metadata
-
         # Figure out which timesteps of labels to get
         s = data['steer']
         m = data['motor']
@@ -106,8 +78,7 @@ class Batch:
 
     def forward(self, optimizer, criterion, data_moment_loss_record):
         optimizer.zero_grad()
-        self.outputs = self.net(Variable(self.camera_data),
-                                Variable(self.metadata)).cuda()
+        self.outputs = self.net(Variable(self.camera_data))
         self.loss = criterion(self.outputs, Variable(self.target_data))
 
         for b in range(ARGS.batch_size):

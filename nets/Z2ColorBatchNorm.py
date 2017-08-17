@@ -9,10 +9,8 @@ class Z2ColorBatchNorm(nn.Module):
     def __init__(self):
         super(Z2ColorBatchNorm, self).__init__()
 
-        self.lr = 0.1
-        self.momentum = 0.1
-        self.N_FRAMES = 2
-        self.N_STEPS = 10
+        self.n_frames = 2
+        self.n_steps = 10
 
         self.conv1 = nn.Conv2d(
             in_channels=12,
@@ -24,7 +22,7 @@ class Z2ColorBatchNorm(nn.Module):
         self.conv1_pool_norm = nn.BatchNorm2d(96)
 
         self.conv2 = nn.Conv2d(
-            in_channels=102,
+            in_channels=96,
             out_channels=256,
             kernel_size=3,
             stride=2,
@@ -42,15 +40,12 @@ class Z2ColorBatchNorm(nn.Module):
         nn.init.xavier_normal(self.ip1.weight)
         nn.init.xavier_normal(self.ip2.weight)
 
-    def forward(self, x, metadata):
+    def forward(self, x):
         # conv1
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv1_pool(x)
         x = self.conv1_pool_norm(x)
-
-        # metadata_concat
-        x = torch.cat((metadata, x), 1)
 
         # conv2
         x = self.conv2_pool_norm(self.conv2_pool(F.relu(self.conv2(x))))
@@ -71,10 +66,7 @@ def unit_test():
     a = test_net(
         Variable(
             torch.randn(
-                5, 12, 94, 168)), Variable(
-            torch.randn(
-                5, 6, 13, 26)))
-    print(a)
+                5, test_net.n_frames * 6, 94, 168)))
 
 
 unit_test()

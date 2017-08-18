@@ -81,7 +81,7 @@ def main():
             'Avg Train Loss = {}'.format(
                 epoch_train_loss.average()))
 
-        Utils.csvwrite('trainloss.csv', [epoch_train_loss.average()])
+        Utils.csvwrite('trainloss.csv', [epoch, epoch_train_loss.average()])
 
         logging.debug('Finished training epoch #{}'.format(epoch))
         logging.debug('Starting validation epoch #{}'.format(epoch))
@@ -110,7 +110,7 @@ def main():
                               epoch))
 
         data.val_index.epoch_complete = False
-        Utils.csvwrite('valloss.csv', [epoch_val_loss.average()])
+        Utils.csvwrite('valloss.csv', [epoch, epoch_val_loss.average()])
         logging.debug('Finished validation epoch #{}'.format(epoch))
         logging.info('Avg Val Loss = {}'.format(epoch_val_loss.average()))
         Utils.save_net("epoch%02d" % (epoch,), net)

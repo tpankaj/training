@@ -76,12 +76,6 @@ def main():
                               len(data.train_index.valid_data_moments),
                               epoch))
 
-                if ARGS.display:
-                    batch.display()
-                    plt.figure('loss')
-                    plt.clf()  # clears figure
-                    print_timer.reset()
-
         data.train_index.epoch_complete = False
         logging.info(
             'Avg Train Loss = {}'.format(

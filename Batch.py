@@ -33,7 +33,7 @@ class Batch:
         self.clear()
         self.data_ids = []
         self.camera_data = torch.FloatTensor(
-            ARGS.batch_size, ARGS.nframes * 6, 94, 168).cuda()
+            ARGS.batch_size, 12, 94, 168).cuda()
         self.target_data = torch.FloatTensor(ARGS.batch_size, 20).cuda()
         for data_number in range(ARGS.batch_size):
             data_point = None
@@ -52,9 +52,16 @@ class Batch:
 
         # Convert Camera Data to PyTorch Ready Tensors
         list_camera_input = []
-        for t in range(ARGS.nframes):
-            for camera in ('left', 'right'):
-                list_camera_input.append(torch.from_numpy(data[camera][t]))
+        list_camera_input.append(torch.from_numpy(data['left'][0]))
+        list_camera_input.append(torch.from_numpy(data['left'][1][1:2]))
+        list_camera_input.append(torch.from_numpy(data['left'][2][1:2]))
+        list_camera_input.append(torch.from_numpy(data['left'][3][1:2]))
+        list_camera_input.append(torch.from_numpy(data['left'][4][1:2]))
+        list_camera_input.append(torch.from_numpy(data['left'][5][1:2]))
+        list_camera_input.append(torch.from_numpy(data['left'][6][1:2]))
+        list_camera_input.append(torch.from_numpy(data['left'][7][1:2]))
+        list_camera_input.append(torch.from_numpy(data['right'][0][1:2]))
+        list_camera_input.append(torch.from_numpy(data['right'][1][1:2]))
         camera_data = torch.cat(list_camera_input, 2)
         camera_data = camera_data.cuda().float() / 255. - 0.5
         camera_data = torch.transpose(camera_data, 0, 2)

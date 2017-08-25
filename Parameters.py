@@ -41,7 +41,7 @@ parser.add_argument('--require-one', default=('direct',), type=str, nargs='+',
 parser.add_argument('--use-states', default=(1, 3, 5, 6, 7), type=str,
                     nargs='+', help='Skips data outside of these states.')
 
-parser.add_argument('--nframes', default=2, type=int,
+parser.add_argument('--nframes', default=10, type=int,
                     help='# timesteps of camera input')
 parser.add_argument('--nsteps', default=10, type=int,
                     help='# of steps of time to predict in the future')

@@ -32,12 +32,12 @@ class Batch:
         # Create row gradient
         self.row_gradient = torch.FloatTensor(94, 168).cuda()
         for row in range(94):
-            self.row_gradient[row, :] = row / 94.
+            self.row_gradient[row, :] = row / 93.
 
         # Create col gradient
         self.col_gradient = torch.FloatTensor(94, 168).cuda()
         for col in range(168):
-            self.col_gradient[:, col] = col / 168.
+            self.col_gradient[:, col] = col / 167.
 
     def fill(self, data, data_index):
         self.clear()

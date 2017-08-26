@@ -77,8 +77,8 @@ class Batch:
         camera_data = torch.transpose(camera_data, 0, 2)
         camera_data = torch.transpose(camera_data, 1, 2)
         self.camera_data[data_number, 0:12, :, :] = camera_data
-        self.camera_data[data_number, 12, :, :] = self.row_gradient[:]
-        self.camera_data[data_number, 13, :, :] = self.col_gradient[:]
+        self.camera_data[data_number, 12, :, :] = self.row_gradient
+        self.camera_data[data_number, 13, :, :] = self.col_gradient
 
         # Figure out which timesteps of labels to get
         s = data['steer']

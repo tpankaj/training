@@ -29,11 +29,21 @@ class Batch:
         self.loss = None
         self.data_ids = None
 
+        # Create row gradient
+        self.row_gradient = torch.FloatTensor(94, 168).cuda()
+        for row in range(94):
+            self.row_gradient[row, :] = row / 94.
+
+        # Create col gradient
+        self.col_gradient = torch.FloatTensor(94, 168).cuda()
+        for col in range(168):
+            self.col_gradient[:, col] = col / 168.
+
     def fill(self, data, data_index):
         self.clear()
         self.data_ids = []
         self.camera_data = torch.FloatTensor(
-            ARGS.batch_size, 12, 94, 168).cuda()
+            ARGS.batch_size, 14, 94, 168).cuda()
         self.target_data = torch.FloatTensor(ARGS.batch_size, 20).cuda()
         for data_number in range(ARGS.batch_size):
             data_point = None
@@ -66,7 +76,9 @@ class Batch:
         camera_data = camera_data.cuda().float() / 255. - 0.5
         camera_data = torch.transpose(camera_data, 0, 2)
         camera_data = torch.transpose(camera_data, 1, 2)
-        self.camera_data[data_number, :, :, :] = camera_data
+        self.camera_data[data_number, 0:12, :, :] = camera_data
+        self.camera_data[data_number, 12, :, :] = self.row_gradient[:]
+        self.camera_data[data_number, 13, :, :] = self.col_gradient[:]
 
         # Figure out which timesteps of labels to get
         s = data['steer']
